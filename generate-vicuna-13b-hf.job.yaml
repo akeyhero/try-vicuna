@@ -1,0 +1,49 @@
+# You need to replace `volumes[].gcs.remotePath` with your own bucket path.
+taskGroups:
+  - taskSpec:
+      computeResource:
+        cpuMilli: 8000
+        # vicuna-13b requires 60GB
+        memoryMib: 65536
+        # Just in case
+        bootDiskMib: 200000
+      runnables:
+        - script:
+            text: |-
+              set -euxC
+              apt update
+              apt install -y git build-essential python3 pip
+              pip3 install fschat
+              pip3 install git+https://github.com/huggingface/transformers
+        - script:
+            text: |-
+              set -euxC
+              python3 -m fastchat.model.apply_delta \
+                --base huggyllama/llama-13b \
+                --target ./vicuna-13b \
+                --delta lmsys/vicuna-13b-delta-v0
+        - script:
+            text: |-
+              set -euxC
+              mv ./vicuna-13b /mnt/disks/gcs/
+      volumes:
+        - gcs:
+            remotePath: __BUCKET_NAME__
+          mountPath: /mnt/disks/gcs
+    taskEnvironments:
+      - variables:
+          # PATH is not set by default when running the runnables
+          PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    taskCount: 1
+    taskCountPerNode: 1
+    parallelism: 1
+allocationPolicy:
+  instances:
+    - policy:
+        machineType: e2-highmem-8
+        # provisioning_model: SPOT
+  location:
+    allowedLocations:
+      - regions/us-west1
+logsPolicy:
+  destination: CLOUD_LOGGING
