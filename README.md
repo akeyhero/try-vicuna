@@ -34,6 +34,6 @@ yq eval -o json '.taskGroups[0].taskSpec.volumes[0].gcs.remotePath = env(BUCKET_
   | gcloud batch jobs submit convert-vicuna-13b-hf-to-q4-2 --location us-central1 --config -
 ```
 
-### Generation
+### Generate
 
 You can now generate words with the generated bin file by [llama.cpp](https://github.com/ggerganov/llama.cpp).
