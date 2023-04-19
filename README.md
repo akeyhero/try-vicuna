@@ -32,6 +32,7 @@ gcloud services enable batch.googleapis.com compute.googleapis.com logging.googl
 ```sh
 yq eval -o json '.taskGroups[0].taskSpec.volumes[0].gcs.remotePath = env(BUCKET_NAME)' convert-vicuna-13b-hf-to-q4_2.job.yaml \
   | gcloud batch jobs submit convert-vicuna-13b-hf-to-q4-2 --location us-central1 --config -
+```
 
 ### Generation
 
