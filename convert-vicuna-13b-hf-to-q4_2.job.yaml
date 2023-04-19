@@ -1,0 +1,48 @@
+# You need to replace `volumes[].gcs.remotePath` with your own bucket path.
+taskGroups:
+  - taskSpec:
+      computeResource:
+        cpuMilli: 4000
+        memoryMib: 32000
+        # Just in case
+        bootDiskMib: 100000
+      runnables:
+        - script:
+            text: |-
+              set -euxC
+              apt update
+              apt install -y git build-essential python3 pip
+              git clone https://github.com/ggerganov/llama.cpp
+              cd llama.cpp
+              make
+              pip3 install -r requirements.txt
+        - script:
+            text: |-
+              set -euxC
+              cd llama.cpp
+              python3 convert.py --outfile models/ggml-vicuna-13b-1.1-fp16.bin /mnt/disks/gcs/vicuna-13b
+              ./quantize models/ggml-vicuna-13b-1.1-fp16.bin models/ggml-vicuna-13b-1.1-q4_2.bin 5
+        - script:
+            text: |-
+              set -euxC
+              mv llama.cpp/models/ggml-vicuna-13b-1.1-q4_2.bin /mnt/disks/gcs/
+      volumes:
+        - gcs:
+            remotePath: __BUCKET_NAME__
+          mountPath: /mnt/disks/gcs
+    taskEnvironments:
+      - variables:
+          # PATH is not set by default when running the runnables
+          PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    taskCount: 1
+    taskCountPerNode: 1
+    parallelism: 1
+allocationPolicy:
+  instances:
+    - policy:
+        machineType: e2-highmem-4
+  location:
+    allowedLocations:
+      - regions/us-west1
+logsPolicy:
+  destination: CLOUD_LOGGING

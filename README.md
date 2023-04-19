@@ -26,3 +26,9 @@ You may need to enable Batch API, etc. in advance.
 ```sh
 gcloud services enable batch.googleapis.com compute.googleapis.com logging.googleapis.com
 ```
+
+### Submit a conversion & quantization job
+
+```sh
+yq eval -o json '.taskGroups[0].taskSpec.volumes[0].gcs.remotePath = env(BUCKET_NAME)' convert-vicuna-13b-hf-to-q4_2.job.yaml \
+  | gcloud batch jobs submit convert-vicuna-13b-hf-to-q4-2 --location us-central1 --config -
