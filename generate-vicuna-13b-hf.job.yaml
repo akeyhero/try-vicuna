@@ -21,7 +21,7 @@ taskGroups:
               python3 -m fastchat.model.apply_delta \
                 --base huggyllama/llama-13b \
                 --target ./vicuna-13b \
-                --delta lmsys/vicuna-13b-delta-v0
+                --delta lmsys/vicuna-13b-delta-v1.1
         - script:
             text: |-
               set -euxC
